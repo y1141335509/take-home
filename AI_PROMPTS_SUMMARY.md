@@ -14,55 +14,6 @@
 ### Context
 After completing an initial implementation with generic assumptions, I emailed Thomas to confirm GridCARE's actual priorities. His response fundamentally changed the entire approach.
 
-### My Email to Thomas
-
-**Subject**: Quick Questions on GridCARE Take-Home Assignment
-
-```
-Hi Thomas,
-
-I'm working through the take-home assignment and wanted to confirm a few things
-to ensure my solution aligns with GridCARE's actual business needs:
-
-1. For the "site selection" aspect - what are GridCARE's top 3 factors when
-   evaluating potential data center locations? I want to make sure my computed
-   column (site_potential_score) reflects real priorities rather than making
-   generic assumptions.
-
-2. Should I assume US-only data sources, or is GridCARE working internationally?
-
-3. Any specific geographic naming inconsistencies you encounter most often that
-   I should demonstrate handling?
-
-Thanks for your time!
-Best,
-Yinghai
-```
-
-### Thomas's Response
-
-```
-Great questions! Let me clarify:
-
-1. Our top 3 factors for site selection are:
-   - **Proximity to the desired location** (most important - clients have specific
-     regions in mind)
-   - **Land zoning laws** (industrial zoning is easiest, agricultural can work,
-     residential is nearly impossible)
-   - **Power capacity available** (obviously important, but location trumps everything)
-
-   Most people assume capacity is #1, but we've found that "hidden capacity" in
-   the right location is far more valuable than massive capacity in the wrong place.
-
-2. US-only for now is fine.
-
-3. Good examples: "San Francisco" vs "SF", "San Mateo County" vs "San Mateo",
-   "Alameda" vs "Alameda County". County/city confusion is our biggest pain point.
-
-Hope this helps!
-Thomas
-```
-
 ---
 
 ## Impact: Complete Strategy Pivot
