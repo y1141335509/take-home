@@ -15,7 +15,8 @@
       "primaryFuel": "Nuclear",
       "technology": "Conventional Steam",
       "status": "Operating",
-      "operationalYear": 1985
+      "operationalYear": 1985,
+      "zoningType": "Industrial"
     },
     {
       "plantCode": "CA-002",
@@ -32,7 +33,8 @@
       "primaryFuel": "Natural Gas",
       "technology": "Combined Cycle",
       "status": "Operating",
-      "operationalYear": 1950
+      "operationalYear": 1950,
+      "zoningType": "Industrial"
     },
     {
       "plantCode": "CA-003",
@@ -49,7 +51,8 @@
       "primaryFuel": "Solar",
       "technology": "Photovoltaic",
       "status": "Operating",
-      "operationalYear": 2014
+      "operationalYear": 2014,
+      "zoningType": "Agricultural"
     },
     {
       "plantCode": "CA-004",
@@ -66,7 +69,8 @@
       "primaryFuel": "Wind",
       "technology": "Onshore Wind Turbine",
       "status": "Operating",
-      "operationalYear": 2010
+      "operationalYear": 2010,
+      "zoningType": "Agricultural"
     },
     {
       "plantCode": "CA-005",
@@ -83,7 +87,8 @@
       "primaryFuel": "Natural Gas",
       "technology": "Combustion Turbine",
       "status": "Operating",
-      "operationalYear": 2009
+      "operationalYear": 2009,
+      "zoningType": "Industrial"
     },
     {
       "plantCode": "CA-006",
@@ -100,7 +105,8 @@
       "primaryFuel": "Natural Gas",
       "technology": "Combustion Turbine",
       "status": "Operating",
-      "operationalYear": 2001
+      "operationalYear": 2001,
+      "zoningType": "Commercial"
     },
     {
       "plantCode": "CA-007",
@@ -117,7 +123,8 @@
       "primaryFuel": "Solar",
       "technology": "Photovoltaic",
       "status": "Operating",
-      "operationalYear": 2016
+      "operationalYear": 2016,
+      "zoningType": "Industrial"
     },
     {
       "plantCode": "CA-008",
@@ -134,7 +141,8 @@
       "primaryFuel": "Solar",
       "technology": "Photovoltaic",
       "status": "Operating",
-      "operationalYear": 2018
+      "operationalYear": 2018,
+      "zoningType": "Commercial"
     },
     {
       "plantCode": "CA-009",
@@ -151,7 +159,8 @@
       "primaryFuel": "Natural Gas",
       "technology": "Combined Cycle",
       "status": "Operating",
-      "operationalYear": 1968
+      "operationalYear": 1968,
+      "zoningType": "Industrial"
     },
     {
       "plantCode": "CA-010",
@@ -168,7 +177,8 @@
       "primaryFuel": "Natural Gas",
       "technology": "Cogeneration",
       "status": "Operating",
-      "operationalYear": 1986
+      "operationalYear": 1986,
+      "zoningType": "Industrial"
     },
     {
       "plantCode": "CA-011",
@@ -185,7 +195,8 @@
       "primaryFuel": "Wind",
       "technology": "Onshore Wind Turbine",
       "status": "Operating",
-      "operationalYear": 2012
+      "operationalYear": 2012,
+      "zoningType": "Agricultural"
     },
     {
       "plantCode": "CA-012",
@@ -202,7 +213,8 @@
       "primaryFuel": "Solar",
       "technology": "Photovoltaic",
       "status": "Operating",
-      "operationalYear": 2017
+      "operationalYear": 2017,
+      "zoningType": "Commercial"
     }
   ]
 }

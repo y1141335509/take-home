@@ -238,56 +238,99 @@ class GridCAREETL:
         """
         Calculate site potential score (feature engineering).
 
-        This computed column helps GridCARE rank sites for data center placement.
+        UPDATED based on GridCARE team feedback (Thomas):
+        Top 3 factors for site evaluation:
+        1. Proximity to target location (40% weight)
+        2. Land zoning favorability (35% weight)
+        3. Power capacity (25% weight)
 
         Formula:
-            site_potential_score = 0.6 * capacity_normalized + 0.4 * fuel_preference
+            site_potential_score = 0.40 * proximity_score +
+                                   0.35 * zoning_favorability +
+                                   0.25 * capacity_normalized
 
-        Where:
-        - capacity_normalized: Min-max normalized capacity (0-1)
-        - fuel_preference: Preference score based on fuel type
-          * Renewable (Solar/Wind): 1.0 (highest priority)
-          * Clean (Nuclear/Hydro): 0.85
-          * Natural Gas: 0.7
-          * Others: 0.5
-
-        Reasoning:
-        - Data centers prefer large capacity (60% weight)
-        - Renewable energy is preferred for sustainability (40% weight)
-        - This scoring aligns with GridCARE's mission to find optimal sites
+        This reflects GridCARE's unique value proposition: finding capacity in
+        the RIGHT location with favorable permitting timelines.
         """
-        logger.info("Calculating site potential scores")
+        logger.info("Calculating site potential scores based on GridCARE priorities")
 
-        # Normalize capacity to 0-1 scale
+        # Target location: San Francisco (Bay Area tech hub - common data center target)
+        # In production, this would be client-specified coordinates
+        TARGET_LAT, TARGET_LON = 37.7749, -122.4194  # San Francisco
+
+        # Factor 1: Proximity Score (40% weight - most important per Thomas)
+        logger.info("Calculating proximity scores")
+        df['proximity_to_target_km'] = df.apply(
+            lambda row: self._haversine_distance(
+                row['latitude'], row['longitude'],
+                TARGET_LAT, TARGET_LON
+            ), axis=1
+        )
+
+        # Normalize proximity: closer = higher score
+        # Max distance for scoring: 500km (beyond this, score approaches 0)
+        max_distance = 500.0
+        df['proximity_score'] = df['proximity_to_target_km'].apply(
+            lambda d: max(0, 1 - (d / max_distance))
+        )
+
+        # Factor 2: Zoning Favorability (35% weight - affects permitting timeline)
+        logger.info("Calculating zoning favorability scores")
+        zoning_scores = {
+            'Industrial': 1.0,      # Best for data centers - existing infrastructure
+            'Commercial': 0.7,      # Possible but slower permits
+            'Agricultural': 0.4,    # Difficult zoning changes required
+            'Residential': 0.2,     # Nearly impossible
+        }
+        df['zoning_favorability'] = df['zoningType'].map(zoning_scores).fillna(0.5)
+
+        # Factor 3: Capacity Score (25% weight - necessary but not sufficient)
+        logger.info("Normalizing capacity scores")
         max_capacity = df['capacity'].max()
         min_capacity = df['capacity'].min()
         df['capacity_normalized'] = (df['capacity'] - min_capacity) / (max_capacity - min_capacity)
 
-        # Define fuel type preferences
-        fuel_preferences = {
-            'Solar': 1.0,
-            'Wind': 1.0,
-            'Nuclear': 0.85,
-            'Hydro': 0.85,
-            'Natural Gas': 0.7,
-            'Coal': 0.5,
-            'Oil': 0.5,
-        }
-
-        df['fuel_preference'] = df['fuelType'].map(fuel_preferences).fillna(0.6)
-
-        # Calculate final score
+        # Calculate final score based on GridCARE team priorities
         df['site_potential_score'] = (
-            0.6 * df['capacity_normalized'] +
-            0.4 * df['fuel_preference']
+            0.40 * df['proximity_score'] +
+            0.35 * df['zoning_favorability'] +
+            0.25 * df['capacity_normalized']
         )
 
         # Round to 3 decimal places
         df['site_potential_score'] = df['site_potential_score'].round(3)
 
         logger.info(f"Score range: {df['site_potential_score'].min():.3f} - {df['site_potential_score'].max():.3f}")
+        logger.info(f"Average proximity: {df['proximity_to_target_km'].mean():.1f} km from target")
 
         return df
+
+    def _haversine_distance(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """
+        Calculate the great circle distance between two points on Earth.
+
+        Args:
+            lat1, lon1: Coordinates of first point
+            lat2, lon2: Coordinates of second point
+
+        Returns:
+            Distance in kilometers
+        """
+        from math import radians, cos, sin, asin, sqrt
+
+        # Convert decimal degrees to radians
+        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+
+        # Haversine formula
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * asin(sqrt(a))
+
+        # Radius of earth in kilometers
+        r = 6371
+
+        return c * r
 
     def _clean_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -321,7 +364,8 @@ class GridCAREETL:
             'primaryFuel': 'primary_fuel',
             'technology': 'technology',
             'status': 'status',
-            'operationalYear': 'operational_year'
+            'operationalYear': 'operational_year',
+            'zoningType': 'zoning_type'
         }
 
         df = df.rename(columns=column_mapping)
@@ -357,14 +401,20 @@ class GridCAREETL:
                 capacity_mw, nameplate_capacity_mw,
                 fuel_type, primary_fuel, technology,
                 status, operational_year,
+                proximity_to_target_km, proximity_score,
+                zoning_type, zoning_favorability,
                 site_potential_score
             ) VALUES (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
             ON CONFLICT (plant_code)
             DO UPDATE SET
                 plant_name = EXCLUDED.plant_name,
                 capacity_mw = EXCLUDED.capacity_mw,
+                proximity_to_target_km = EXCLUDED.proximity_to_target_km,
+                proximity_score = EXCLUDED.proximity_score,
+                zoning_type = EXCLUDED.zoning_type,
+                zoning_favorability = EXCLUDED.zoning_favorability,
                 site_potential_score = EXCLUDED.site_potential_score,
                 updated_at = CURRENT_TIMESTAMP
         """
@@ -388,6 +438,10 @@ class GridCAREETL:
                 row.get('technology'),
                 row.get('status'),
                 row.get('operational_year'),
+                row.get('proximity_to_target_km'),
+                row.get('proximity_score'),
+                row.get('zoning_type'),
+                row.get('zoning_favorability'),
                 row['site_potential_score']
             )
             for _, row in df.iterrows()
@@ -425,8 +479,9 @@ class GridCAREETL:
                 county,
                 state,
                 capacity_mw,
-                fuel_type,
-                site_potential_score
+                ROUND(proximity_to_target_km::numeric, 1) as distance_km,
+                zoning_type,
+                ROUND(site_potential_score::numeric, 3) as score
             FROM power_plants
             WHERE status = 'Operating'
             ORDER BY site_potential_score DESC

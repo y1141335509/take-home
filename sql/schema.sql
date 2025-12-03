@@ -32,9 +32,20 @@ CREATE TABLE IF NOT EXISTS power_plants (
     status VARCHAR(50),
     operational_year INTEGER,
 
+    -- GridCARE's Top 3 Factors (from team discussion)
+    -- Factor 1: Proximity to target location
+    proximity_to_target_km FLOAT,
+    proximity_score FLOAT,  -- Normalized 0-1, closer = higher
+
+    -- Factor 2: Land zoning favorability
+    zoning_type VARCHAR(50),  -- Industrial, Commercial, Agricultural, etc.
+    zoning_favorability FLOAT,  -- 0-1 scale based on zoning type
+
+    -- Factor 3: Power capacity
+    -- (capacity_mw already defined above)
+
     -- COMPUTED COLUMN: Site Potential Score
-    -- This score helps GridCARE identify optimal data center locations
-    -- Calculation: weighted by capacity, fuel type preference, and operational status
+    -- Based on GridCARE team priorities: proximity (40%), zoning (35%), capacity (25%)
     site_potential_score FLOAT,
 
     -- Metadata
